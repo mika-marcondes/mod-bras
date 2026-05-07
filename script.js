@@ -1,12 +1,20 @@
-(function() {
+(function () {
     'use strict';
+    /**
+     *  Remove a trava da viewport,
+     *  permitindo que o flexbox se adapte 
+     *  ao tamanho da tela.
+     */
     function fixViewport() {
         const meta = document.querySelector('meta[name=viewport]');
         if (meta) {
             meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
         }
     }
-    
+    /**
+     * Injeta estilos CSS para corrigir a visualização
+     * em dispositivos móveis. 
+     */
     function injectMobileCSS() {
         const style = document.createElement('style');
         style.id = 'braslol-portrait-fix';
@@ -171,96 +179,33 @@
         `;
         document.head.appendChild(style);
     }
-    // Step 3: Create hamburger button + overlay + drawer logic
+    /**
+     *  Cria e controla a exibição e funcionalidade 
+     *  do botão de menu hambúrguer
+     */
     function setupHamburgerMenu() {
-        // Create hamburger button
+        // Botão
         const btn = document.createElement('button');
         btn.className = 'hamburger-btn';
         btn.innerHTML = '☰';
         btn.title = 'Menu';
         document.body.appendChild(btn);
-
-        // Create dark overlay (click to close)
+        
+        // Overlay (escurece o fundo quando o menu está aberto) 
         const overlay = document.createElement('div');
         overlay.className = 'sidebar-overlay';
         document.body.appendChild(overlay);
 
-        // Fix #1 & #2: Only show hamburger when ONLY dashboard is visible
+        /**
+         *  Atualiza e controla a visibilidade do botão.
+         */
         function updateBtnVisibility() {
             const dash = document.getElementById('dashboard');
             const mainMenu = document.getElementById('main-menu');
             const setup = document.getElementById('setup-screen');
-
-            const dashVisible = dash && !dash.classList.contains('hidden');
-            const menuVisible = mainMenu && !mainMenu.classList.contains('hidden');
-            const setupVisible = setup && !setup.classList.contains('hidden');
-
-            // Show only on dashboard, not on main menu or setup
-            const shouldShow = dashVisible && !menuVisible && !setupVisible;
-            btn.style.display = shouldShow ? 'flex' : 'none';
         }
-
-        // Watch for screen changes (dashboard show/hide)
-        const observer = new MutationObserver(updateBtnVisibility);
-        const app = document.getElementById('app');
-        if (app) {
-            observer.observe(app, { subtree: true, attributes: true, attributeFilter: ['class'] });
-        }
-        updateBtnVisibility();
-
-        function openDrawer() {
-            const sidebar = document.querySelector('.dash-sidebar-left');
-            const dash = document.getElementById('dashboard');
-            if (sidebar) {
-                sidebar.classList.add('drawer-open');
-                overlay.classList.add('active');
-                btn.innerHTML = '✕';
-                btn.classList.add('drawer-open');
-                // Fix #3: Raise dashboard stacking context above overlay
-                if (dash) dash.classList.add('drawer-active');
-            }
-        }
-
-        function closeDrawer() {
-            const sidebar = document.querySelector('.dash-sidebar-left');
-            const dash = document.getElementById('dashboard');
-            if (sidebar) {
-                sidebar.classList.remove('drawer-open');
-                overlay.classList.remove('active');
-                btn.innerHTML = '☰';
-                btn.classList.remove('drawer-open');
-                if (dash) dash.classList.remove('drawer-active');
-            }
-        }
-
-        // Toggle drawer on hamburger click
-        btn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            const sidebar = document.querySelector('.dash-sidebar-left');
-            if (sidebar && sidebar.classList.contains('drawer-open')) {
-                closeDrawer();
-            } else {
-                openDrawer();
-            }
-        });
-
-        // Close drawer when clicking outside sidebar (overlay, main area, menu items)
-        document.addEventListener('click', function (e) {
-            const sidebar = document.querySelector('.dash-sidebar-left');
-            if (!sidebar || !sidebar.classList.contains('drawer-open')) return;
-
-            // If click is inside the sidebar, only close if it's a menu item
-            if (e.target.closest('.dash-sidebar-left')) {
-                if (e.target.closest('.dash-menu-item')) {
-                    closeDrawer();
-                }
-                return;
-            }
-
-            // Click was outside sidebar — close
-            closeDrawer();
-        });
     }
+
     fixViewport();
     injectMobileCSS();
 
