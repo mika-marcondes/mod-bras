@@ -1,3 +1,3 @@
 ```
-javascript:void(fetch('https://raw.githubusercontent.com/mika-marcondes/mod-bras/main/script.js').then(r=>r.text()).then(eval).catch(e=>alert('Erro: '+e)))
+javascript:void((function(){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/mika-marcondes/mod-bras@main/script.js';document.head.appendChild(s)})())
 ```
