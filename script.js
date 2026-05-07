@@ -11,6 +11,7 @@
             meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
         }
     }
+    
     /**
      * Injeta estilos CSS para corrigir a visualização
      * em dispositivos móveis. 
@@ -179,6 +180,7 @@
         `;
         document.head.appendChild(style);
     }
+
     /**
      *  Cria e controla a exibição e funcionalidade 
      *  do botão de menu hambúrguer
@@ -191,7 +193,7 @@
         btn.title = 'Menu';
         document.body.appendChild(btn);
         
-        // Overlay (escurece o fundo quando o menu está aberto) 
+        // Overlay (clica e fecha o menu) 
         const overlay = document.createElement('div');
         overlay.className = 'sidebar-overlay';
         document.body.appendChild(overlay);
@@ -203,7 +205,79 @@
             const dash = document.getElementById('dashboard');
             const mainMenu = document.getElementById('main-menu');
             const setup = document.getElementById('setup-screen');
+
+            const dashVisible = dash && !dash.classList.contains('hidden');
+            const menuVisible = mainMenu && !mainMenu.classList.contains('hidden');
+            const setupVisible = setup && !setup.classList.contains('hidden');
+
+            const shouldShow = dashVisible && !menuVisible && !setupVisible;
+            btn.style.display = shouldShow ? 'flex' : 'none';
         }
+
+        // Observa por mudanças na tela
+        const observer = new MutationObserver(updateBtnVisibility);
+        const app = document.getElementById('app');
+        if (app) {
+            observer.observe(app, { subtree: true, attributes: true, attributeFilter: ['class'] });
+        }
+        updateBtnVisibility();
+
+        /**
+         *  Abre o menu hambúrguer e garante que fique por cima dos outros elementos.
+         */
+        function openDrawer() {
+            const sidebar = document.querySelector('.dash-sidebar-left');
+            const dash = document.getElementById('dashboard');
+            if (sidebar) {
+                sidebar.classList.add('drawer-open');
+                overlay.classList.add('active');
+                btn.innerHTML = '✕';
+                btn.classList.add('drawer-open');
+                if (dash) dash.classList.add('drawer-active');
+            }
+        }
+        /**
+         *  Fecha o menu hambúrguer.
+         */
+        function closeDrawer() {
+            const sidebar = document.querySelector('.dash-sidebar-left');
+            const dash = document.getElementById('dashboard');
+            if (sidebar) {
+                sidebar.classList.remove('drawer-open');
+                overlay.classList.remove('active');
+                btn.innerHTML = '☰';
+                btn.classList.remove('drawer-open');
+                if (dash) dash.classList.remove('drawer-active');
+            }
+        }
+        
+        // Fecha e abre o menu ao clicar no botão
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const sidebar = document.querySelector('.dash-sidebar-left');
+            if (sidebar && sidebar.classList.contains('drawer-open')) {
+                closeDrawer();
+            } else {
+                openDrawer();
+            }
+        });
+
+        // Fecha o menu quando clicar fora da sidebar
+        document.addEventListener('click', function (e) {
+            const sidebar = document.querySelector('.dash-sidebar-left');
+            if (!sidebar || !sidebar.classList.contains('drawer-open')) return;
+
+            // Se o toque for dentro da sidebar, só fecha se for um item do menu
+            if (e.target.closest('.dash-sidebar-left')) {
+                if (e.target.closest('.dash-menu-item')) {
+                    closeDrawer();
+                }
+                return;
+            }
+
+            // Fecha se clicar fora da sidebar
+            closeDrawer();
+        });
     }
 
     fixViewport();
