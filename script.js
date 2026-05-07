@@ -178,10 +178,6 @@
                 }
 
                 /* ── Ver Times: Region buttons ── */
-                #dash-teams-panel > div:first-child {
-                    flex-direction: column !important;
-                    gap: 10px !important;
-                }
                 #dash-teams-panel > div:first-child > div:last-child {
                     overflow-x: auto !important;
                     -webkit-overflow-scrolling: touch !important;
@@ -192,6 +188,34 @@
                 .teams-region-btn {
                     white-space: nowrap !important;
                     flex-shrink: 0 !important;
+                }
+
+                /* ── Ver Times: Voltar button full width ── */
+                #dash-teams-panel > div:first-child > button {
+                    width: 100% !important;
+                    text-align: center !important;
+                    padding: 12px !important;
+                    font-size: 14px !important;
+                }
+
+                /* ── Ver Times: Title contained ── */
+                #dash-teams-panel > div:first-child > div:nth-child(2) {
+                    overflow: hidden !important;
+                    word-wrap: break-word !important;
+                }
+                #dash-teams-panel > div:first-child > div:nth-child(2) > div:first-child {
+                    font-size: 16px !important;
+                    white-space: normal !important;
+                }
+
+                /* ── Ver Times: Panel containment ── */
+                #dash-teams-panel .dash-panel {
+                    overflow: hidden !important;
+                    max-width: 100% !important;
+                }
+                #dash-teams-panel .dash-panel > div > div:last-child {
+                    overflow-x: auto !important;
+                    max-width: 100% !important;
                 }
 
                 /* ── Ver Times: Team list + roster layout ── */
