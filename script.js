@@ -176,6 +176,53 @@
                     color: #fff !important;
                     border-bottom: none !important;
                 }
+
+                /* ── Ver Times: Region buttons ── */
+                #dash-teams-panel > div:first-child {
+                    flex-direction: column !important;
+                    gap: 10px !important;
+                }
+                #dash-teams-panel > div:first-child > div:last-child {
+                    overflow-x: auto !important;
+                    -webkit-overflow-scrolling: touch !important;
+                    flex-wrap: nowrap !important;
+                    margin-left: 0 !important;
+                    padding-bottom: 4px !important;
+                }
+                .teams-region-btn {
+                    white-space: nowrap !important;
+                    flex-shrink: 0 !important;
+                }
+
+                /* ── Ver Times: Team list + roster layout ── */
+                #dash-teams-panel .dash-panel > div {
+                    flex-direction: column !important;
+                    gap: 12px !important;
+                }
+                #all-teams-list {
+                    width: 100% !important;
+                    flex-direction: row !important;
+                    flex-wrap: nowrap !important;
+                    overflow-x: auto !important;
+                    -webkit-overflow-scrolling: touch !important;
+                    max-height: none !important;
+                    gap: 6px !important;
+                    padding-bottom: 8px !important;
+                }
+                #all-teams-list > * {
+                    flex-shrink: 0 !important;
+                    min-width: 100px !important;
+                    font-size: 11px !important;
+                    padding: 6px 10px !important;
+                }
+
+                /* ── Ver Times: Player table scroll ── */
+                #dash-teams-panel .dash-table {
+                    display: block !important;
+                    overflow-x: auto !important;
+                    -webkit-overflow-scrolling: touch !important;
+                    white-space: nowrap !important;
+                }
             }
         `;
         document.head.appendChild(style);
