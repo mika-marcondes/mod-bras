@@ -111,24 +111,19 @@
                     display: none !important;
                 }
 
-                /* ── Issue #1: Season label next to hamburger ── */
-                .season-top-label {
-                    position: fixed;
-                    top: 16px;
-                    left: 64px;
+                /* ── Issue #1: Season label below card ── */
+                .season-label {
+                    font-size: 12px;
                     color: var(--text-dim);
-                    font-size: 13px;
                     font-weight: 700;
-                    z-index: 9998;
-                    white-space: nowrap;
-                    pointer-events: none;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    padding: 4px 4px 10px;
                 }
 
                 /* ── Issue #1: Collapsible info card ── */
                 .info-card {
-                    position: sticky;
-                    top: 56px;
-                    z-index: 9990;
+                    position: relative;
                     background: var(--dash-panel);
                     border: 1px solid var(--dash-border);
                     border-radius: 10px;
@@ -491,11 +486,6 @@
         const mainArea = document.querySelector('.dash-main-area');
         if (!mainArea) return;
 
-        // ─── Season label next to hamburger ───
-        const seasonLabel = document.createElement('span');
-        seasonLabel.className = 'season-top-label';
-        document.body.appendChild(seasonLabel);
-
         // ─── Card structure ───
         const card = document.createElement('div');
         card.className = 'info-card';
@@ -551,12 +541,18 @@
             </div>
         `;
 
-        // Insert before #dash-content-grid
+        // ─── Season label below card ───
+        const seasonLabel = document.createElement('div');
+        seasonLabel.className = 'season-label';
+
+        // Insert card + season label as first children of #dash-content-grid
         const grid = document.getElementById('dash-content-grid');
         if (grid) {
-            mainArea.insertBefore(card, grid);
+            grid.insertBefore(seasonLabel, grid.firstChild);
+            grid.insertBefore(card, seasonLabel);
         } else {
             mainArea.appendChild(card);
+            mainArea.appendChild(seasonLabel);
         }
 
         // ─── Data sync function ───
@@ -588,10 +584,8 @@
                 const parts = season.textContent.split('-');
                 const weekPart = parts.length > 1 ? parts[parts.length - 1].trim() : season.textContent;
                 cardWeek.textContent = weekPart;
-
-                // Top bar season label: "Fase de Pontos | Semana 1"
-                const phasePart = parts.length > 1 ? parts[0].trim() : '';
-                seasonLabel.textContent = phasePart ? phasePart + ' | ' + weekPart : season.textContent;
+                // Also refresh top label in case season changed
+                updateSeasonLabel();
             }
 
             // Body (expanded)
@@ -642,32 +636,52 @@
             card.classList.toggle('expanded');
         });
 
-        // ─── Auto-collapse on scroll ───
-        let lastScrollY = 0;
-        const scrollContainer = mainArea;
-        scrollContainer.addEventListener('scroll', function () {
-            const currentY = scrollContainer.scrollTop;
-            if (currentY > lastScrollY + 20 && card.classList.contains('expanded')) {
-                card.classList.remove('expanded');
-            }
-            lastScrollY = currentY;
-        });
 
-        // ─── Visibility: season label follows dashboard state ───
-        function updateSeasonVisibility() {
-            const dash = document.getElementById('dashboard');
-            const contentGrid = document.getElementById('dash-content-grid');
-            const dashVisible = dash && !dash.classList.contains('hidden');
-            const gridVisible = contentGrid && !contentGrid.classList.contains('hidden');
-            seasonLabel.style.display = (dashVisible && gridVisible) ? '' : 'none';
+        // ─── Season label sync ───
+        function updateSeasonLabel() {
+            const season = document.getElementById('dash-season-val');
+            if (season) {
+                seasonLabel.textContent = season.textContent;
+            }
+        }
+        updateSeasonLabel();
+
+        // ─── Move card to active panel ───
+        // Card lives in whichever panel is currently visible
+        const subPanels = [
+            'dash-roster-panel', 'dash-transfers-panel', 'dash-meta-panel',
+            'dash-teams-panel', 'dash-bsi-panel', 'dash-brasworlds-panel'
+        ];
+
+        function relocateCard() {
+            // Check if a sub-panel is active
+            for (const id of subPanels) {
+                const panel = document.getElementById(id);
+                if (panel && !panel.classList.contains('hidden')) {
+                    // Move card to top of this panel
+                    if (card.parentElement !== panel) {
+                        panel.insertBefore(card, panel.firstChild);
+                    }
+                    seasonLabel.style.display = 'none';
+                    return;
+                }
+            }
+            // Default: back to content grid
+            if (grid && card.parentElement !== grid) {
+                grid.insertBefore(card, grid.firstChild);
+                if (seasonLabel.parentElement !== grid) {
+                    grid.insertBefore(seasonLabel, card.nextSibling);
+                }
+            }
+            seasonLabel.style.display = '';
         }
 
-        const visObserver = new MutationObserver(updateSeasonVisibility);
+        const relocObserver = new MutationObserver(relocateCard);
         const appEl = document.getElementById('app');
         if (appEl) {
-            visObserver.observe(appEl, { subtree: true, attributes: true, attributeFilter: ['class'] });
+            relocObserver.observe(appEl, { subtree: true, attributes: true, attributeFilter: ['class'] });
         }
-        updateSeasonVisibility();
+        relocateCard();
     }
 
     fixViewport();
