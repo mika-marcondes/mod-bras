@@ -111,14 +111,33 @@
                     display: none !important;
                 }
 
-                /* ── Issue #1: Season label below card ── */
+                /* ── Issue #1: Season info below card ── */
+                .split-label {
+                    font-size: 18px;
+                    color: var(--dash-purple);
+                    font-weight: 800;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    padding: 6px 4px 2px;
+                }
                 .season-label {
                     font-size: 12px;
                     color: var(--text-dim);
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
-                    padding: 4px 4px 10px;
+                    padding: 0 4px 10px;
+                }
+                #dash-season-bottom {
+                    display: none !important;
+                }
+
+                /* ── Standings table: full width ── */
+                .dash-content-grid .dash-table {
+                    width: 100% !important;
+                }
+                .dash-content-grid .dash-panel {
+                    padding: 14px !important;
                 }
 
                 /* ── Issue #1: Collapsible info card ── */
@@ -257,7 +276,7 @@
                 }
                 .dash-table td,
                 .dash-table th {
-                    padding: 10px 8px !important;
+                    padding: 10px 24px !important;
                     font-size: 14px !important;
                 }
 
@@ -545,13 +564,19 @@
         const seasonLabel = document.createElement('div');
         seasonLabel.className = 'season-label';
 
-        // Insert card + season label as first children of #dash-content-grid
+        // ─── Split + Season labels below card ───
+        const splitLabel = document.createElement('div');
+        splitLabel.className = 'split-label';
+
+        // Insert card + labels as first children of #dash-content-grid
         const grid = document.getElementById('dash-content-grid');
         if (grid) {
             grid.insertBefore(seasonLabel, grid.firstChild);
-            grid.insertBefore(card, seasonLabel);
+            grid.insertBefore(splitLabel, seasonLabel);
+            grid.insertBefore(card, splitLabel);
         } else {
             mainArea.appendChild(card);
+            mainArea.appendChild(splitLabel);
             mainArea.appendChild(seasonLabel);
         }
 
@@ -641,7 +666,13 @@
         function updateSeasonLabel() {
             const season = document.getElementById('dash-season-val');
             if (season) {
-                seasonLabel.textContent = season.textContent;
+                // Expand "Sem" to "Semana"
+                seasonLabel.textContent = season.textContent.replace(/\bSem\b/g, 'Semana');
+            }
+            // Sync split info from bottom badge
+            const bottom = document.getElementById('dash-season-bottom');
+            if (bottom) {
+                splitLabel.textContent = bottom.textContent;
             }
         }
         updateSeasonLabel();
@@ -663,17 +694,18 @@
                         panel.insertBefore(card, panel.firstChild);
                     }
                     seasonLabel.style.display = 'none';
+                    splitLabel.style.display = 'none';
                     return;
                 }
             }
             // Default: back to content grid
             if (grid && card.parentElement !== grid) {
                 grid.insertBefore(card, grid.firstChild);
-                if (seasonLabel.parentElement !== grid) {
-                    grid.insertBefore(seasonLabel, card.nextSibling);
-                }
+                grid.insertBefore(splitLabel, card.nextSibling);
+                grid.insertBefore(seasonLabel, splitLabel.nextSibling);
             }
             seasonLabel.style.display = '';
+            splitLabel.style.display = '';
         }
 
         const relocObserver = new MutationObserver(relocateCard);
