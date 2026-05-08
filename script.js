@@ -106,6 +106,121 @@
                     padding-top: 60px !important;
                 }
 
+                /* ── Issue #1: Hide original info cards ── */
+                .dash-header-row {
+                    display: none !important;
+                }
+
+                /* ── Issue #1: Season label next to hamburger ── */
+                .season-top-label {
+                    position: fixed;
+                    top: 16px;
+                    left: 64px;
+                    color: var(--text-dim);
+                    font-size: 13px;
+                    font-weight: 700;
+                    z-index: 9998;
+                    white-space: nowrap;
+                    pointer-events: none;
+                }
+
+                /* ── Issue #1: Collapsible info card ── */
+                .info-card {
+                    position: sticky;
+                    top: 56px;
+                    z-index: 9990;
+                    background: var(--dash-panel);
+                    border: 1px solid var(--dash-border);
+                    border-radius: 10px;
+                    margin-bottom: 12px;
+                    overflow: hidden;
+                    cursor: pointer;
+                    -webkit-tap-highlight-color: transparent;
+                }
+                .info-card-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 10px 14px;
+                    min-height: 44px;
+                }
+                .info-card-header img {
+                    width: 24px;
+                    height: 24px;
+                    object-fit: contain;
+                    border-radius: 4px;
+                }
+                .info-card-name {
+                    font-weight: 800;
+                    font-size: 14px;
+                    color: #fff;
+                }
+                .info-card-money {
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: var(--dash-green);
+                    margin-left: auto;
+                }
+                .info-card-week {
+                    font-size: 11px;
+                    color: var(--text-dim);
+                    font-weight: 600;
+                }
+                .info-card-chevron {
+                    font-size: 14px;
+                    color: var(--text-dim);
+                    transition: transform 0.3s ease;
+                    margin-left: 4px;
+                }
+                .info-card.expanded .info-card-chevron {
+                    transform: rotate(180deg);
+                }
+
+                /* Expandable body */
+                .info-card-body {
+                    max-height: 0;
+                    overflow: hidden;
+                    transition: max-height 0.3s ease;
+                    border-top: 0px solid transparent;
+                }
+                .info-card.expanded .info-card-body {
+                    max-height: 300px;
+                    border-top: 1px solid var(--dash-border);
+                }
+                .info-card-grid {
+                    display: grid;
+                    gap: 0;
+                    padding: 12px 14px;
+                }
+                .info-card-grid-row {
+                    display: grid;
+                    gap: 8px;
+                    padding: 8px 0;
+                    border-bottom: 1px solid rgba(255,255,255,0.05);
+                }
+                .info-card-grid-row:last-child {
+                    border-bottom: none;
+                }
+                .info-card-grid-row.cols-3 {
+                    grid-template-columns: 1fr 1fr 1fr;
+                }
+                .info-card-grid-row.cols-2 {
+                    grid-template-columns: 1fr 1fr;
+                }
+                .info-card-stat-label {
+                    font-size: 9px;
+                    color: var(--text-dim);
+                    text-transform: uppercase;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 2px;
+                }
+                .info-card-stat-value {
+                    font-size: 14px;
+                    font-weight: 800;
+                    color: #fff;
+                }
+
                 /* Raise dashboard above modals when drawer is open */
                 #dashboard.drawer-active {
                     z-index: 10001 !important;
@@ -351,12 +466,221 @@
         });
     }
 
+    /**
+     *  Abreviação de valores monetários.
+     *  "R$ 4.500.000" → "R$ 4.5M"
+     *  "R$ 144.549"   → "R$ 144K"
+     */
+    function abbreviateMoney(text) {
+        if (!text) return 'R$ 0';
+        const cleaned = text.replace(/[^\d]/g, '');
+        const num = parseInt(cleaned, 10);
+        if (isNaN(num)) return text;
+        if (num >= 1000000) return 'R$ ' + (num / 1000000).toFixed(1).replace('.0', '') + 'M';
+        if (num >= 1000) return 'R$ ' + (num / 1000).toFixed(0) + 'K';
+        return 'R$ ' + num;
+    }
+
+    /**
+     *  Cria o card compacto e sticky com informações do time.
+     *  Substitui os 4 cards originais no mobile.
+     */
+    function setupInfoCard() {
+        // CSS handles hiding on desktop via @media query
+
+        const mainArea = document.querySelector('.dash-main-area');
+        if (!mainArea) return;
+
+        // ─── Season label next to hamburger ───
+        const seasonLabel = document.createElement('span');
+        seasonLabel.className = 'season-top-label';
+        document.body.appendChild(seasonLabel);
+
+        // ─── Card structure ───
+        const card = document.createElement('div');
+        card.className = 'info-card';
+        card.innerHTML = `
+            <div class="info-card-header">
+                <img class="info-card-logo" src="" alt="">
+                <span class="info-card-name"></span>
+                <span class="info-card-money"></span>
+                <span class="info-card-week"></span>
+                <span class="info-card-chevron">▼</span>
+            </div>
+            <div class="info-card-body">
+                <div class="info-card-grid">
+                    <div class="info-card-grid-row cols-3">
+                        <div>
+                            <div class="info-card-stat-label">Torcida</div>
+                            <div class="info-card-stat-value" id="ic-fans"></div>
+                        </div>
+                        <div>
+                            <div class="info-card-stat-label">Felicidade</div>
+                            <div class="info-card-stat-value" id="ic-satisfaction" style="color: var(--gold);"></div>
+                        </div>
+                        <div>
+                            <div class="info-card-stat-label">Coach</div>
+                            <div class="info-card-stat-value" id="ic-coach"></div>
+                        </div>
+                    </div>
+                    <div class="info-card-grid-row cols-2">
+                        <div>
+                            <div class="info-card-stat-label">Saldo</div>
+                            <div class="info-card-stat-value" id="ic-money" style="color: var(--dash-green);"></div>
+                        </div>
+                        <div>
+                            <div class="info-card-stat-label">Orçamento</div>
+                            <div class="info-card-stat-value" id="ic-salary"></div>
+                        </div>
+                    </div>
+                    <div class="info-card-grid-row cols-3">
+                        <div>
+                            <div class="info-card-stat-label">Receita</div>
+                            <div class="info-card-stat-value" id="ic-income" style="color: var(--dash-green); font-size: 12px;"></div>
+                        </div>
+                        <div>
+                            <div class="info-card-stat-label">Despesa</div>
+                            <div class="info-card-stat-value" id="ic-outcome" style="color: var(--red); font-size: 12px;"></div>
+                        </div>
+                        <div>
+                            <div class="info-card-stat-label">Lucro</div>
+                            <div class="info-card-stat-value" id="ic-profit" style="font-size: 12px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Insert before #dash-content-grid
+        const grid = document.getElementById('dash-content-grid');
+        if (grid) {
+            mainArea.insertBefore(card, grid);
+        } else {
+            mainArea.appendChild(card);
+        }
+
+        // ─── Data sync function ───
+        function syncCardData() {
+            const logo = document.getElementById('dash-my-logo');
+            const name = document.getElementById('dash-my-name');
+            const money = document.getElementById('dash-money-val');
+            const season = document.getElementById('dash-season-val');
+            const fans = document.getElementById('dash-fans-val');
+            const satisfaction = document.getElementById('dash-satisfaction-num');
+            const coach = document.getElementById('dash-coach-name');
+            const salary = document.getElementById('dash-salary-val');
+            const income = document.getElementById('fin-income');
+            const outcome = document.getElementById('fin-outcome');
+            const profit = document.getElementById('fin-profit');
+
+            // Header (collapsed)
+            const cardLogo = card.querySelector('.info-card-logo');
+            const cardName = card.querySelector('.info-card-name');
+            const cardMoney = card.querySelector('.info-card-money');
+            const cardWeek = card.querySelector('.info-card-week');
+
+            if (logo) cardLogo.src = logo.src;
+            if (name) cardName.textContent = name.textContent;
+            if (money) cardMoney.textContent = abbreviateMoney(money.textContent);
+
+            // Parse season: "Fase de Pontos - Sem 1" → "Sem 1"
+            if (season) {
+                const parts = season.textContent.split('-');
+                const weekPart = parts.length > 1 ? parts[parts.length - 1].trim() : season.textContent;
+                cardWeek.textContent = weekPart;
+
+                // Top bar season label: "Fase de Pontos | Semana 1"
+                const phasePart = parts.length > 1 ? parts[0].trim() : '';
+                seasonLabel.textContent = phasePart ? phasePart + ' | ' + weekPart : season.textContent;
+            }
+
+            // Body (expanded)
+            const icFans = document.getElementById('ic-fans');
+            const icSatisfaction = document.getElementById('ic-satisfaction');
+            const icCoach = document.getElementById('ic-coach');
+            const icMoney = document.getElementById('ic-money');
+            const icSalary = document.getElementById('ic-salary');
+            const icIncome = document.getElementById('ic-income');
+            const icOutcome = document.getElementById('ic-outcome');
+            const icProfit = document.getElementById('ic-profit');
+
+            if (fans && icFans) icFans.textContent = fans.textContent;
+            if (satisfaction && icSatisfaction) icSatisfaction.textContent = satisfaction.textContent;
+            if (coach && icCoach) icCoach.textContent = coach.textContent;
+            if (money && icMoney) icMoney.textContent = money.textContent;
+            if (salary && icSalary) icSalary.textContent = salary.textContent;
+            if (income && icIncome) icIncome.textContent = income.textContent;
+            if (outcome && icOutcome) icOutcome.textContent = outcome.textContent;
+            if (profit && icProfit) icProfit.textContent = profit.textContent;
+        }
+
+        // Initial sync
+        syncCardData();
+
+        // ─── MutationObserver for data sync ───
+        const watchIds = [
+            'dash-my-name', 'dash-money-val', 'dash-season-val',
+            'dash-fans-val', 'dash-satisfaction-num', 'dash-coach-name',
+            'dash-salary-val', 'fin-income', 'fin-outcome', 'fin-profit'
+        ];
+        const observerConfig = { childList: true, characterData: true, subtree: true };
+        watchIds.forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el) {
+                new MutationObserver(syncCardData).observe(el, observerConfig);
+            }
+        });
+
+        // Watch logo src changes
+        const logoEl = document.getElementById('dash-my-logo');
+        if (logoEl) {
+            new MutationObserver(syncCardData).observe(logoEl, { attributes: true, attributeFilter: ['src'] });
+        }
+
+        // ─── Tap to expand/collapse ───
+        card.addEventListener('click', function () {
+            card.classList.toggle('expanded');
+        });
+
+        // ─── Auto-collapse on scroll ───
+        let lastScrollY = 0;
+        const scrollContainer = mainArea;
+        scrollContainer.addEventListener('scroll', function () {
+            const currentY = scrollContainer.scrollTop;
+            if (currentY > lastScrollY + 20 && card.classList.contains('expanded')) {
+                card.classList.remove('expanded');
+            }
+            lastScrollY = currentY;
+        });
+
+        // ─── Visibility: season label follows dashboard state ───
+        function updateSeasonVisibility() {
+            const dash = document.getElementById('dashboard');
+            const contentGrid = document.getElementById('dash-content-grid');
+            const dashVisible = dash && !dash.classList.contains('hidden');
+            const gridVisible = contentGrid && !contentGrid.classList.contains('hidden');
+            seasonLabel.style.display = (dashVisible && gridVisible) ? '' : 'none';
+        }
+
+        const visObserver = new MutationObserver(updateSeasonVisibility);
+        const appEl = document.getElementById('app');
+        if (appEl) {
+            visObserver.observe(appEl, { subtree: true, attributes: true, attributeFilter: ['class'] });
+        }
+        updateSeasonVisibility();
+    }
+
     fixViewport();
     injectMobileCSS();
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupHamburgerMenu);
-    } else {
+    function initComponents() {
         setupHamburgerMenu();
+        setupInfoCard();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initComponents);
+    } else {
+        initComponents();
     }
 })();
