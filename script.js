@@ -140,6 +140,15 @@
                     padding: 14px !important;
                 }
 
+                /* ── Dashboard panel order: Próximo Jogo first ── */
+                .dash-row-3 {
+                    display: flex !important;
+                    flex-direction: column !important;
+                }
+                .dash-row-3 > .dash-panel:nth-child(1) { order: 2; } /* Classificação → 2nd */
+                .dash-row-3 > .dash-panel:nth-child(2) { order: 1; } /* Próximo Jogo → 1st */
+                .dash-row-3 > .dash-panel:nth-child(3) { order: 3; } /* Notícias → 3rd */
+
                 /* ── Issue #1: Collapsible info card ── */
                 .info-card {
                     position: relative;
@@ -266,7 +275,7 @@
                 .help-tooltip:after {
                     left: auto !important;
                     right: 15px !important;
-                }
+                }   
 
                 /* Standings table: use full width */
                 .dash-table {
